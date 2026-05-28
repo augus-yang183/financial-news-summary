@@ -1,0 +1,812 @@
+project:
+  name: "Financial News Intelligence Dashboard"
+  selected_track: "financial_news"
+  language: "zh-CN"
+  timezone: "Asia/Shanghai"
+  random_seed: 42
+
+paths:
+  raw_news: "data/raw/news/raw_news.csv"
+  cleaned_news: "data/interim/news/cleaned_news.csv"
+  topic_labeled_news: "data/processed/news/topic_labeled_news.csv"
+  sentiment_risk_news: "data/processed/news/sentiment_risk_news.csv"
+  output_tables: "data/outputs/tables"
+  figures: "data/outputs/figures"
+  agent_inputs: "data/outputs/agent_inputs"
+  docs: "docs"
+
+output_files:
+  tables:
+    daily_news_volume: "daily_news_volume.csv"
+    hourly_news_volume: "hourly_news_volume.csv"
+    topic_heatmap_matrix: "topic_heatmap_matrix.csv"
+    topic_burst_scores: "topic_burst_scores.csv"
+    daily_sentiment_trend: "daily_sentiment_trend.csv"
+    topic_sentiment_matrix: "topic_sentiment_matrix.csv"
+    high_risk_events: "high_risk_events.csv"
+  figures:
+    daily_news_volume: "fig_daily_news_volume.png"
+    intraday_news_flow: "fig_intraday_news_flow.png"
+    topic_heatmap: "fig_topic_heatmap.html"
+    topic_burst_ranking: "fig_topic_burst_ranking.png"
+    sentiment_trend: "fig_sentiment_trend.png"
+    topic_sentiment_heatmap: "fig_topic_sentiment_heatmap.html"
+    risk_event_distribution: "fig_risk_event_distribution.png"
+    high_risk_timeline: "fig_high_risk_timeline.html"
+  figures_bilingual:
+    daily_news_volume: "fig_daily_news_volume_bilingual.png"
+    intraday_news_flow: "fig_intraday_news_flow_bilingual.png"
+    topic_heatmap: "fig_topic_heatmap_bilingual.html"
+    topic_burst_ranking: "fig_topic_burst_ranking_bilingual.png"
+    sentiment_trend: "fig_sentiment_trend_bilingual.png"
+    topic_sentiment_heatmap: "fig_topic_sentiment_heatmap_bilingual.html"
+    risk_event_distribution: "fig_risk_event_distribution_bilingual.png"
+    high_risk_timeline: "fig_high_risk_timeline_bilingual.html"
+    figure_file_index: "figure_file_index.md"
+  agent_inputs:
+    daily_topic_summary: "daily_topic_summary.json"
+    topic_burst_summary: "topic_burst_summary.json"
+    sentiment_risk_summary: "sentiment_risk_summary.json"
+    high_risk_events: "high_risk_events.json"
+    daily_financial_news_briefing: "daily_financial_news_briefing.md"
+    daily_financial_news_briefing_bilingual: "daily_financial_news_briefing_bilingual.md"
+    coze_knowledge_base_financial_news: "coze_knowledge_base_financial_news.md"
+  reports:
+    final_report_bilingual: "financial_news_intelligence_final_report_bilingual.docx"
+
+crawler:
+  news_source: "eastmoney_7x24"
+  request_delay_seconds: 1.5
+  max_pages: 20
+  page_size: 50
+  fast_column: 102
+  timeout_seconds: 10
+  max_retries: 3
+  encoding: "utf-8"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"
+  obey_public_access_limits: true
+
+news:
+  min_sample_size: 500
+  validation_sample_size: 50
+  target_days: 14
+  use_full_text: false
+  deduplicate_by:
+    - "title_clean"
+    - "url"
+  required_fields:
+    - "news_id"
+    - "title"
+    - "publish_time_raw"
+    - "source"
+    - "raw_text"
+    - "crawl_time"
+
+cleaning:
+  min_text_length: 5
+  remove_source_prefix: true
+  remove_html_tags: true
+  normalize_punctuation: true
+  fallback_publish_time_to_crawl_time: false
+
+topics:
+  # ==========================================
+  # 一、 科技与硬科技板块 (原主题扩充)
+  # ==========================================
+  AI:
+    - 人工智能
+    - 大模型
+    - 算力
+    - GPU
+    - 数据中心
+    - AIGC
+    - 智能体
+    - Multi-Agent
+    - 多模态
+    - 深度学习
+    - 神经网络
+    - 生成式AI
+    - 智算中心
+    - 推理芯片
+    - 语言模型
+    - 计算机视觉
+    - 语音识别
+    - 知识图谱
+    - 具身智能
+    - 机器人
+    - OpenAI
+    - ChatGPT
+    - 英伟达
+    - Nvidia
+    - AI
+    - 科网
+    - 光模块
+    - PCB
+    - 服务器
+
+  Semiconductor:
+    - 芯片
+    - 半导体
+    - 光刻机
+    - 晶圆
+    - 封测
+    - 存储
+    - 晶圆代工
+    - 先进制程
+    - 三代半导体
+    - 碳化硅
+    - 射频芯片
+    - MCU
+    - 模拟芯片
+    - 核心架构
+    - 掩膜版
+    - 电子设计自动化
+    - EDA
+    - ASML
+    - 集成电路
+    - 蚀刻机
+    - 薄膜沉积
+    - 玻璃基板
+    - 载板
+    - 封装
+    - MLCC
+
+  Low_Altitude_Economy:
+    - 低空经济
+    - 无人机
+    - eVTOL
+    - 飞行汽车
+    - 通航
+    - 通用航空
+    - 空域管理
+    - 空管系统
+    - 飞行器
+    - 地面保障
+    - 起降场
+    - 航空基础设施
+    - 低空数字化
+    - 民航局
+    - 航路规划
+    - 航线开通
+
+  # ==========================================
+  # 二、 传统与周期板块 (原主题扩充)
+  # ==========================================
+  New_Energy:
+    - 新能源
+    - 锂电
+    - 储能
+    - 光伏
+    - 风电
+    - 充电桩
+    - 固态电池
+    - 钠电池
+    - 氢能
+    - 燃料电池
+    - 硅料
+    - 组件
+    - 逆变器
+    - 动力电池
+    - 正极材料
+    - 负极材料
+    - 电网建设
+    - 特高压
+    - 绿电
+    - 碳中和
+    - 碳达峰
+    - 电芯
+    - 供货协议
+    - 逆变
+
+  Real_Estate:
+    - 房地产
+    - 楼市
+    - 房贷
+    - 土地
+    - 住建
+    - 保交楼
+    - 商品房
+    - 二手房
+    - 购房补贴
+    - 首付比例
+    - 公积金
+    - 限购
+    - 房企
+    - 物业
+    - 去库存
+    - 土地出让金
+    - 棚改
+    - 城中村改造
+
+  # ==========================================
+  # 三、 大消费与大健康板块 (原主题扩充)
+  # ==========================================
+  Consumption:
+    - 消费
+    - 零售
+    - 文旅
+    - 餐饮
+    - 免税
+    - 家电
+    - 电商
+    - 跨境电商
+    - 潮玩
+    - 新零售
+    - 预制菜
+    - 黄金珠宝
+    - 汽车消费
+    - 以旧换新
+    - 酒店
+    - 旅游
+    - 景区
+    - 电影票房
+    - 新消费
+    - 供应链
+
+  Healthcare:
+    - 创新药
+    - 医保
+    - 医疗器械
+    - 药品
+    - 医药
+    - 集采
+    - 生物医药
+    - 临床试验
+    - CXO
+    - 药企
+    - 仿制药
+    - 疫苗
+    - 细胞治疗
+    - 靶向药
+    - 医疗信息化
+    - 互联网医院
+    - 基因测序
+    - 医院
+    - 康复
+    - 脑机接口
+    - 中疾控
+    - 埃博拉
+
+  # ==========================================
+  # 四、 金融与宏观调控板块 (原主题扩充)
+  # ==========================================
+  Financial_Regulation:
+    - 央行
+    - 证监会
+    - 金融监管
+    - 降准
+    - 利率
+    - 货币政策
+    - 交易所
+    - 金融稳定
+    - 问询
+    - 违规减持
+    - 信息披露
+    - 严监管
+    - 金融检查
+    - 防范风险
+    - 穿透式监管
+    - 金融消保
+    - 罚单
+    - 减持
+    - 实控人
+    - 控股股东
+    - 股东
+    - 停牌
+    - 复牌
+    - 股权转让
+    - 异常波动
+    - 重大事项
+
+  Overseas_Macro:
+    - 美联储
+    - CPI
+    - 非农
+    - 美元
+    - 通胀
+    - 降息
+    - 加息
+    - 离岸人民币
+    - 汇率
+    - 外汇储备
+    - 欧洲央行
+    - 全球贸易
+    - 关税
+    - 跨国企业
+    - 外部环境
+    - 出口大增
+    - 特朗普
+    - 美国
+    - 欧盟
+    - 欧洲
+    - 日本
+    - 韩国
+    - 印度
+    - 国际
+    - APEC
+
+  Bond_Credit:
+    - 债券
+    - 违约
+    - 城投
+    - 信用
+    - 债务
+    - 票据
+    - 地方债
+    - 国债
+    - 公司债
+    - 信用评级
+    - 展期
+    - 兑付
+    - 利息支付
+    - 资产证券化
+    - ABS
+    - 化债
+    - 置换债券
+    - 收益率
+    - 美债
+    - 国债收益率
+
+  # ==========================================
+  # 五、 新增主题：横向拦截其他高频财经新闻 (NEW!)
+  # ==========================================
+  Auto_Industry:
+    - 智能汽车
+    - 新能源车
+    - 电动汽车
+    - 智能驾驶
+    - 智驾
+    - 自动驾驶
+    - 锂电池
+    - 智能座舱
+    - 车联网
+    - 固态电池
+    - 造车新势力
+    - 车企
+    - 交付量
+    - 混动
+    - 插混
+    - 激光雷达
+
+  Banking_Asset:
+    - 银行
+    - 贷款
+    - 存款
+    - 理财
+    - 信贷
+    - 净息差
+    - 呆账
+    - 不良率
+    - 基金
+    - ETF
+    - 公募
+    - 私募
+    - 资产管理
+    - 资管
+    - 券商
+    - 投行
+    - 开户
+
+  Internet_Platform:
+    - 互联网
+    - 平台经济
+    - 流量
+    - 核心业务
+    - 云服务
+    - 广告收入
+    - 财报
+    - 降本增效
+    - 出海
+    - 活跃用户
+    - MAU
+    - 组织架构调整
+    - 腾讯
+    - 阿里
+    - 字节跳动
+    - 美团
+    - 拼多多
+
+  Macro_Economy_CN:
+    - GDP
+    - 固定资产投资
+    - PMI
+    - 制造业
+    - 工业增加值
+    - 财政政策
+    - 社融
+    - 新质生产力
+    - 设备更新
+    - 高质量发展
+    - 专项债
+    - 经济数据
+    - 国家统计局
+    - 发展改革委
+
+  Global_Trade:
+    - 出口
+    - 进口
+    - 进出口
+    - 顺差
+    - 逆差
+    - 跨境物流
+    - 海运
+    - 运价
+    - 港口
+    - 一带一路
+    - 外贸
+    - 关税
+    - 国际展会
+    - 供应链韧性
+
+  Geopolitical_Risk:
+    - 伊朗
+    - 美伊
+    - 以色列
+    - 加沙
+    - 霍尔木兹
+    - 中东
+    - 乌克兰
+    - 乌军
+    - 乌方
+    - 基辅
+    - 卢甘斯克
+    - 俄罗斯
+    - 俄军
+    - 俄方
+    - 俄称
+    - 巴基斯坦
+    - 军事
+    - 战争
+    - 空袭
+    - 封锁
+    - 制裁
+    - 核问题
+    - 谈判
+    - 协议
+    - 外交
+    - 国务卿
+    - 航行自由
+
+  Capital_Market:
+    - A股
+    - 港股
+    - 美股
+    - 沪指
+    - 深证成指
+    - 创业板指
+    - 恒生科技指数
+    - 纳指
+    - 标普500
+    - 道指
+    - 涨停
+    - 连板
+    - 股价
+    - 主力资金
+    - 南向资金
+    - 成分股
+    - 指数调整
+    - IPO
+    - 定增
+    - 再融资
+    - 回购
+    - 市值
+    - 资金流向
+
+  Commodity_Futures:
+    - 期货
+    - 商品期货
+    - 原油
+    - 黄金
+    - 沪金
+    - 沪银
+    - 沪铜
+    - 沪镍
+    - 燃油
+    - 菜油
+    - 不锈钢
+    - 聚丙烯
+    - 沥青
+    - 棉花
+    - 丁二烯胶
+    - 低硫燃油
+    - 液化天然气
+    - LNG
+    - 煤炭
+    - 瓦斯
+
+  Public_Risk:
+    - 暴雨
+    - 洪水
+    - 山洪
+    - 防汛
+    - 救灾
+    - 灾害
+    - 应急响应
+    - 预警
+    - 强降雨
+    - 台风
+    - 地质灾害
+    - 事故
+    - 爆炸
+    - 化学品
+    - 安全生产
+    - 煤矿
+
+  Aerospace_Defense:
+    - 航天
+    - 神舟
+    - 载人飞行
+    - 发射
+    - 卫星
+    - 火箭
+    - 星舰
+    - SpaceX
+    - 星链
+    - 导弹
+    - 护卫舰
+    - 军演
+    - 战斧
+    - 国防
+
+topic_classification:
+  default_topic: "Other"
+  multi_topic_score_gap: 1
+  min_keyword_hits: 1
+
+sentiment:
+  labels:
+    positive: "positive"
+    neutral: "neutral"
+    negative: "negative"
+  positive_keywords:
+    - "\u589e\u957f"
+    - "\u4e0a\u6da8"
+    - "\u56de\u6696"
+    - "\u5229\u597d"
+    - "\u7a81\u7834"
+    - "\u521b\u65b0\u9ad8"
+    - "\u83b7\u6279"
+    - "\u7b7e\u7ea6"
+    - "\u878d\u8d44"
+    - "\u8ba2\u5355"
+    - "\u652f\u6301"
+    - "\u6269\u5927"
+    - 中标
+    - 扩产
+    - 盈利
+    - 改善
+    - 补贴
+    - 试点
+    - 落地
+    - 加速
+    - 回升
+    - 大涨
+    - 涨超
+    - 创新
+    - 取得进展
+    - 需求旺盛
+    - 高景气
+  negative_keywords:
+    - "\u4e0b\u8dcc"
+    - "\u4e0b\u964d"
+    - "\u4e8f\u635f"
+    - "\u8fdd\u7ea6"
+    - "\u5904\u7f5a"
+    - "\u8c03\u67e5"
+    - "\u95ee\u8be2"
+    - "\u98ce\u9669"
+    - "\u6536\u7d27"
+    - "\u88c1\u5458"
+    - "\u66b4\u96f7"
+    - "\u62d6\u6b20"
+    - 减持
+    - 退市
+    - 逾期
+    - 下滑
+    - 降价
+    - 收缩
+    - 停产
+    - 大跌
+    - 跌停
+    - 暴跌
+    - 跳水
+    - 受损
+    - 袭击
+    - 空袭
+    - 爆炸
+    - 死亡
+    - 伤亡
+    - 预警
+    - 封锁
+    - 制裁
+    - 不确定性
+    - 违规
+    - 警示函
+    - 罚款
+  neutral_default: true
+
+risk_events:
+  Regulatory_Risk:
+    - "\u76d1\u7ba1"
+    - "\u5904\u7f5a"
+    - "\u7acb\u6848"
+    - "\u8c03\u67e5"
+    - "\u95ee\u8be2\u51fd"
+    - "\u8b66\u793a\u51fd"
+    - "\u8fdd\u89c4"
+    - 证监会
+    - 交易所
+    - 深交所
+    - 上交所
+    - 问询
+    - 行政处罚
+    - 罚款
+    - 罚没
+    - 立案调查
+    - 异常波动
+    - 停牌核查
+    - 信息披露
+    - 应披露
+    - 未披露
+    - 减持
+    - 退市
+  Credit_Risk:
+    - "\u8fdd\u7ea6"
+    - "\u503a\u52a1"
+    - "\u903e\u671f"
+    - "\u5c55\u671f"
+    - "\u5151\u4ed8"
+    - "\u4fe1\u7528\u98ce\u9669"
+    - 偿债
+    - 清偿
+    - 流动性
+    - 债券
+    - 债务逾期
+    - 预重整
+    - 破产重整
+    - 仲裁
+  Operating_Risk:
+    - "\u4e8f\u635f"
+    - "\u505c\u4ea7"
+    - "\u88c1\u5458"
+    - "\u7834\u4ea7"
+    - "\u51cf\u4ea7"
+    - "\u7ecf\u8425\u538b\u529b"
+    - 订单下降
+    - 关店
+    - 业绩下滑
+    - 收入下滑
+    - 成本上涨
+    - 库存
+    - 停工
+    - 停业
+    - 停运
+    - 缺货
+    - 良性清退
+    - 清退
+  Market_Risk:
+    - "\u4e0b\u8dcc"
+    - "\u6ce2\u52a8"
+    - "\u629b\u552e"
+    - "\u5927\u8dcc"
+    - "\u9707\u8361"
+    - "\u6d41\u52a8\u6027"
+    - 暴跌
+    - 跳水
+    - 下调
+    - 降价
+    - 跌停
+    - 跌幅
+    - 收跌
+    - 净空头
+    - 炒作风险
+    - 股价波动
+    - 异常交易
+  Policy_Opportunity:
+    - "\u653f\u7b56\u652f\u6301"
+    - "\u6276\u6301"
+    - "\u8865\u8d34"
+    - "\u8bd5\u70b9"
+    - "\u89c4\u5212"
+    - 支持
+    - 政策
+    - 印发
+    - 推动
+    - 启动
+    - 项目建设
+    - 基础设施建设
+    - 改革
+    - 高质量发展
+  Financing_Opportunity:
+    - "\u878d\u8d44"
+    - "\u589e\u8d44"
+    - "\u5e76\u8d2d"
+    - "\u52df\u8d44"
+    - "\u4e0a\u5e02"
+    - 定增
+    - 再融资
+    - 投资
+    - 签约
+    - 战略合作
+    - 股权转让
+    - 收购
+    - IPO
+  Performance_Opportunity:
+    - "\u589e\u957f"
+    - "\u626d\u4e8f"
+    - "\u9884\u589e"
+    - "\u8ba2\u5355\u589e\u957f"
+    - "\u4e1a\u7ee9"
+    - 盈利
+    - 订单
+    - 交付
+    - 创新高
+    - 高景气
+    - 需求旺盛
+    - 爆单
+    - 回暖
+    - 改善
+    - 涨超
+    - 大涨
+  Geopolitical_Risk:
+    - 空袭
+    - 袭击
+    - 战争
+    - 军事打击
+    - 封锁
+    - 制裁
+    - 核问题
+    - 停火
+    - 侵略
+    - 冲突
+    - 武装
+    - 导弹
+    - 无人机袭击
+    - 死亡
+    - 伤亡
+  Public_Safety_Risk:
+    - 暴雨
+    - 洪水
+    - 山洪
+    - 地质灾害
+    - 应急响应
+    - 预警
+    - 爆炸
+    - 事故
+    - 瓦斯
+    - 化学品
+    - 停课
+    - 停工
+    - 停业
+    - 救灾
+
+risk_scoring:
+  high_risk_threshold: 3
+  keyword_weight: 1
+  negative_sentiment_bonus: 1
+  max_score: 5
+
+analysis:
+  burst_rolling_window_days: 7
+  top_n_topics: 10
+  top_n_representative_news: 5
+  high_risk_top_n: 30
+
+visualization:
+  figure_dpi: 150
+  style: "whitegrid"
+  font_family: "SimHei"
+  title_language: "en"
+
+agent:
+  name: "Financial News Briefing Agent"
+  output_language: "zh-CN"
+  no_investment_advice: true
+  sections:
+    - "\u4eca\u65e5\u8d22\u7ecf\u65b0\u95fb\u603b\u89c8"
+    - "\u4eca\u65e5 Top 3 \u70ed\u70b9\u4e3b\u9898"
+    - "\u7a81\u53d1\u5347\u6e29\u4e3b\u9898\u89e3\u91ca"
+    - "\u60c5\u7eea\u7ed3\u6784\u603b\u7ed3"
+    - "\u9ad8\u98ce\u9669\u4e8b\u4ef6\u63d0\u9192"
+    - "100 \u5b57\u8d22\u7ecf\u65b0\u95fb\u7b80\u62a5"
+    - "\u98ce\u9669\u514d\u8d23\u58f0\u660e"
